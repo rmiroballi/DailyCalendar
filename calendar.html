@@ -1,0 +1,169 @@
+
+<html lang="en" ng-app="familyCalendar">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Latest compiled and minified CSS -->
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+	integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css"
+	integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+	integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular-animate.js"></script>
+<script src="https://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-1.1.1.js"></script>
+<script>
+	var familyCalendar = angular.module('familyCalendar', [ 'ngAnimate', 'ui.bootstrap' ]);
+
+	familyCalendar.controller('calendarController', function($scope, $interval, $filter) {
+		$scope.mainCal = {};
+
+		//Refresh every hour.
+		var refreshCalendars = $interval(function() {
+			$scope.refreshCal();
+		}, 3600000);
+		
+		$scope.refreshCal = function() {
+			var day = new Date();
+			var today = $filter('date')(day, 'yyyyMMdd');
+			var dayNum = day.getDay() + 1;
+			var frame = angular.element(document.querySelector('#weekCal'));
+			//This is your calendar or calendars, put them after the src=
+			//wkst='+ dayNum + ' makes the calendar always start on the current day.
+			//mode=WEEK makes the calendar a weekly view.
+			https://calendar.google.com/calendar/embed?showTitle=0&showNav=0&showDate=0&showPrint=0&showTabs=0&showCalendars=0&showTz=0&mode=WEEK&height=600&wkst='+ dayNum + '&bgcolor=%23FFFFFF&src=';
+			var daySrc = 'https://calendar.google.com/calendar/embed?';
+			frame.attr('src', daySrc);
+			$scope.mainCal.refresh = true;
+			
+		}
+
+	});
+
+	familyCalendar.directive('refreshable', [ function() {
+		return {
+			restrict : 'A',
+			scope : {
+				refresh : "=refreshable"
+			},
+			link : function(scope, element, attr) {
+				var refreshMe = function() {
+					element.attr('src', element.attr('src'));
+				};
+
+				scope.$watch('refresh', function(newVal, oldVal) {
+					if (scope.refresh) {
+						scope.refresh = false;
+						refreshMe();
+					}
+				});
+			}
+		};
+	} ]);
+
+	familyCalendar.controller("FeedCtrl", [ '$scope', '$interval', 'FeedService', function($scope, $interval, Feed) {
+		$scope.feeds = [];
+		$scope.feedIndex = 0;
+		$scope.currentFeed = '';
+		$scope.clock = new Date();
+		
+		$scope.loadFeed = function(e) {
+			Feed.parseFeed(e).then(function(res) {
+				$scope.feedIndex = 0;
+				var f = res.data.responseData.feed.entries;
+				var l = $scope.feeds.length;
+				for (i = 0; i < f.length; i++) {
+					f[i].id = i + l;
+					$scope.feeds[$scope.feeds.length] = f[i];
+				}
+				$scope.showFeed(0);
+			});
+		}
+
+		$scope.initFeed = function() {
+			$scope.loadFeed("http://feeds.feedburner.com/quotationspage/qotd");
+			$scope.loadFeed("http://feeds.feedburner.com/quotationspage/mqotd");
+		}
+
+		//Refresh feeds once a day.
+		var refreshFeed = $interval(function() {
+			$scope.feeds = [];
+			$scope.loadFeed("http://feeds.feedburner.com/quotationspage/qotd");
+			$scope.loadFeed("http://feeds.feedburner.com/quotationspage/mqotd");
+		}, 86400000);
+		
+		var changeFeed = $interval(function() {
+			$scope.feedIndex++;
+			if($scope.feedIndex == $scope.feeds.length)	{
+				$scope.feedIndex = 0;
+			}
+			$scope.showFeed($scope.feedIndex);
+		}, 15000);
+		
+		var clockInterval = $interval(function() {
+			$scope.clock = new Date();
+		}, 1000);
+		
+		$scope.showFeed = function(index) {
+			$scope.currentFeed = $scope.feeds[index];
+		}
+		
+	} ]);
+
+	familyCalendar
+			.factory(
+					'FeedService',
+					[
+							'$http',
+							function($http) {
+								return {
+									parseFeed : function(url) {
+										return $http
+												.jsonp('https://ajax.googleapis.com/ajax/services/feed/load?v=1.0&num=50&callback=JSON_CALLBACK&q='
+														+ encodeURIComponent(url));
+									}
+								}
+							} ]);
+</script>
+</head>
+<body>
+	<div class="container-fluid">
+		<div class="row">
+			<div ng-controller="calendarController" ng-init="refreshCal();">
+				<div class="col-md-12">
+				
+					<iframe refreshable="mainCal.refresh" id="weekCal"
+						src=""
+						style="border-width: 0" width="900" height="600" frameborder="0" scrolling="no"></iframe>
+					</div>
+				
+			</div>
+		</div>
+<!--  -->
+		<div class="row">
+			<div ng-controller="FeedCtrl" ng-init="initFeed();">
+				<div class="col-md-10">
+					<blockquote>
+						<p>{{currentFeed.content}}</p>
+						<footer>
+							<cite title="Source Title"><a href="{{currentFeed.link}}">{{currentFeed.title}}</a></cite>
+						</footer>
+					</blockquote>
+				</div>
+				<div class="col-md-2">
+					<span><h4>{{clock | date: 'mediumTime'}}</h4></span>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
+
