@@ -1,0 +1,62 @@
+
+<html lang="en" ng-app="familyCalendar">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Latest compiled and minified CSS -->
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+	integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css"
+	integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+	integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular-animate.js"></script>
+<script src="https://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-1.1.1.js"></script>
+<script src="../familyCalendar.js"></script>
+<script src="../controller/calendarController.js"></script>
+<script src="../controller/feedController.js"></script>
+<script src="../directive/refreshable.js"></script>
+<script src="../service/services.js"></script>
+</head>
+<body>
+	<div class="container-fluid">
+		<div class="row">
+			<div ng-controller="calendarController" ng-init="refreshCal();">
+				<div class="col-md-12">
+
+					<iframe refreshable="mainCal.refresh" id="weekCal" src="" style="border-width: 0" width="900" height="600"
+						frameborder="0" scrolling="no"></iframe>
+				</div>
+
+			</div>
+		</div>
+		<!--  -->
+
+		<div ng-controller="feedController" ng-init="initFeed();">
+			<div class="row">
+				<div class="col-md-12">
+					<p>{{currentFeed.content}}
+					<cite title="Source Title">{{currentFeed.title}}</cite></p>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-8">
+					<p><b>{{forecast}}</b> <img src="https://icons.wxug.com/logos/PNG/wundergroundLogo_4c_horz.png" width="90" height="25"/></p>
+				</div>				
+				<div class="col-md-2">
+					<span><h4>{{clock | date: 'mediumTime'}}</h4></span>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
+
